@@ -37,7 +37,8 @@ go install github.com/bniladridas/kit/cmd/kit@latest
 Download the binary from the [latest release](https://github.com/bniladridas/kit/releases/latest) and move it to your PATH.
 
 ```bash
-tar -xzf kit_linux_amd64.tar.gz
+curl -fsSL https://github.com/bniladridas/kit/releases/download/v1.0.0/kit-linux-amd64 -o kit
+chmod +x kit
 sudo mv kit /usr/local/bin
 ```
 
