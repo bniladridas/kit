@@ -88,7 +88,7 @@ func runUpdate(cmd *cobra.Command, args []string) error {
 }
 
 func getLatestVersion(ctx context.Context) (string, error) {
-	client := &http.Client{Timeout: 10}
+	client := &http.Client{Timeout: 15}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, githubAPIURL, nil)
 	if err != nil {
 		return "", err
@@ -96,17 +96,21 @@ func getLatestVersion(ctx context.Context) (string, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("network error: %w", err)
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode == http.StatusForbidden {
+		return "", fmt.Errorf("GitHub API rate limit exceeded")
+	}
+
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unexpected status: %d", resp.StatusCode)
+		return "", fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to read response: %w", err)
 	}
 
 	bodyStr := string(body)
