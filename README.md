@@ -18,7 +18,8 @@ A lightweight developer CLI built with Go for working with Git hosting platforms
 brew install bniladridas/tap/kit
 ```
 
-Homebrew tap: https://github.com/bniladridas/homebrew-tap
+For Homebrew installation, see:
+https://github.com/bniladridas/homebrew-tap
 
 ### Install Script
 
