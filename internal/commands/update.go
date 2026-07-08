@@ -48,7 +48,10 @@ func runUpdate(cmd *cobra.Command, args []string) error {
 	info(cmd, "Checking for updates...")
 	latestVersion, err := getLatestVersion(cmd.Context())
 	if err != nil {
-		return exitcode.New(exitcode.ErrNetwork, fmt.Errorf("failed to check for updates: %w", err))
+		if isNetworkError(err) {
+			return exitcode.New(exitcode.ErrNetwork, fmt.Errorf("failed to check for updates: %w", err))
+		}
+		return exitcode.New(exitcode.ErrAPI, fmt.Errorf("failed to check for updates: %w", err))
 	}
 
 	if latestVersion == currentVersion {
@@ -87,8 +90,20 @@ func runUpdate(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func isNetworkError(err error) bool {
+	if err == nil {
+		return false
+	}
+	errStr := err.Error()
+	return strings.Contains(errStr, "network error") ||
+		strings.Contains(errStr, "timeout") ||
+		strings.Contains(errStr, "connection refused") ||
+		strings.Contains(errStr, "no such host") ||
+		strings.Contains(errStr, "Client.Timeout")
+}
+
 func getLatestVersion(ctx context.Context) (string, error) {
-	client := &http.Client{Timeout: 15}
+	client := &http.Client{Timeout: 30}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, githubAPIURL, nil)
 	if err != nil {
 		return "", err
