@@ -45,6 +45,10 @@ func (s *SecureStore) fallbackDir() (string, error) {
 }
 
 func (s *SecureStore) Save(provider Provider, token string) error {
+	if s.forceFallback {
+		return s.saveFallback(provider, token)
+	}
+
 	if err := keyring.Set(s.ServiceName, string(provider), token); err != nil {
 		if errors.Is(err, keyring.ErrUnsupportedPlatform) {
 			return s.saveFallback(provider, token)
