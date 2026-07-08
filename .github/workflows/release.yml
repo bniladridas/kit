@@ -51,6 +51,5 @@ jobs:
           name: ${{ steps.version.outputs.VERSION }}
           files: |
             dist/*
-            dist/checksums.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
