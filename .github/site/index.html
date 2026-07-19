@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#161412">
+  <title>Kit</title>
+  <meta name="description" content="A lightweight Go CLI for working with GitHub from the terminal. Repos, issues, pull requests, and more.">
+  <link rel="icon" type="image/svg+xml" href="palmshed.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #161412;
+      --bg-secondary: #1c1917;
+      --text: #c9c0b5;
+      --text-secondary: #8a8278;
+      --text-tertiary: #635d54;
+      --border: #252220;
+      --accent: #c49a6c;
+      --accent-hover: #d4aa7a;
+      --code-bg: #1f1c1a;
+      --font-body: Georgia, "Times New Roman", serif;
+      --font-heading: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", monospace;
+      --max-width: 680px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 17px; scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      line-height: 1.8;
+      color: var(--text);
+      background: var(--bg);
+      background-image: radial-gradient(ellipse at 50% 0%, #1d1a17 0%, #161412 70%);
+      background-attachment: fixed;
+      -webkit-font-smoothing: antialiased;
+      padding: 0 2rem;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: var(--accent-hover);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      text-decoration-thickness: 1px;
+    }
+
+    .container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 2.5rem 0 5rem;
+    }
+
+    /* ── Nav ── */
+    nav {
+      padding: 1.5rem 0 2rem;
+      position: relative;
+    }
+
+    nav .container {
+      padding: 0;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      margin-right: 2rem;
+    }
+
+    .logo-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .logo-link:hover { text-decoration: none; opacity: 0.7; }
+    .logo-link:active { opacity: 0.55; }
+
+    .logo-mark {
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+      opacity: 0.75;
+    }
+
+    .site-title {
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: 0.02em;
+    }
+
+    .nav-right {
+      position: absolute;
+      right: 2rem;
+      top: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.5rem;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.5rem;
+    }
+
+    nav a {
+      color: var(--text-tertiary);
+      font-family: var(--font-heading);
+      font-size: 0.88rem;
+      font-weight: 500;
+      letter-spacing: 0.015em;
+      white-space: nowrap;
+    }
+
+    nav a:hover { color: var(--accent); text-decoration: none; }
+
+    /* Hamburger */
+    .nav-toggle {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.5rem;
+      margin: -0.5rem;
+      flex-shrink: 0;
+    }
+
+    .nav-toggle span {
+      display: block;
+      width: 18px;
+      height: 2px;
+      background: var(--text-tertiary);
+      margin: 4px 0;
+    }
+
+    .nav-toggle:hover span { background: var(--accent); }
+
+    .nav-toggle[aria-expanded="true"] span:nth-child(1) {
+      transform: translateY(6px) rotate(45deg);
+    }
+
+    .nav-toggle[aria-expanded="true"] span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .nav-toggle[aria-expanded="true"] span:nth-child(3) {
+      transform: translateY(-6px) rotate(-45deg);
+    }
+
+    /* Mobile menu */
+    .nav-mobile-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 0;
+      z-index: 250;
+    }
+
+    .nav-open .nav-mobile-menu { display: block; }
+
+    .nav-mobile-menu a {
+      display: block;
+      padding: 0.6rem 1.25rem;
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      text-decoration: none;
+    }
+
+    .nav-mobile-menu a:hover {
+      color: var(--accent);
+      background: var(--bg);
+      text-decoration: none;
+    }
+
+    @media (max-width: 520px) {
+      .nav-links { display: none; }
+      .nav-toggle { display: block; }
+      .nav-right {
+        position: static;
+        flex-direction: row;
+        align-items: center;
+        margin-left: auto;
+        gap: 1.25rem;
+      }
+    }
+
+    /* ── Headings ── */
+    h1, h2, h3 {
+      font-family: var(--font-heading);
+      line-height: 1.35;
+      font-weight: 500;
+    }
+
+    h1 {
+      font-size: 2rem;
+      letter-spacing: -0.01em;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      letter-spacing: -0.005em;
+      padding-bottom: 0.5rem;
+      margin-top: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      margin-top: 2rem;
+      margin-bottom: 0.8rem;
+    }
+
+    p { margin-bottom: 1.5rem; max-width: 65ch; }
+
+    strong { font-weight: 500; }
+
+    /* ── Subtitle ── */
+    .subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      margin-bottom: 2.5rem;
+      line-height: 1.6;
+      max-width: 55ch;
+    }
+
+    .intro {
+      color: var(--text-secondary);
+      margin-bottom: 2.5rem;
+      max-width: 60ch;
+    }
+
+    /* ── Terminal ── */
+    .terminal {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      margin-bottom: 2rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      line-height: 1.6;
+      overflow-x: auto;
+    }
+
+    .terminal-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0.6rem 1rem;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .terminal-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .terminal-dot:nth-child(1) { background: #FF5F56; }
+    .terminal-dot:nth-child(2) { background: #FFBD2E; }
+    .terminal-dot:nth-child(3) { background: #27C93F; }
+
+    .terminal-body { padding: 1.25rem; }
+
+    .terminal-body .prompt { color: var(--accent); }
+    .terminal-body .cmd { color: var(--text); }
+    .terminal-body .output { color: var(--text-secondary); }
+    .terminal-body .highlight { color: var(--accent-hover); }
+    .terminal-body .dim { color: var(--text-tertiary); }
+
+    /* ── Code ── */
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      background: var(--code-bg);
+      padding: 0.15em 0.4em;
+    }
+
+    pre {
+      background: var(--code-bg);
+      padding: 1.25rem;
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    pre code { background: none; padding: 0; font-size: inherit; }
+
+    /* ── Install list ── */
+    .install-list {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 2rem;
+    }
+
+    .install-list li {
+      padding: 0.7rem 0.5rem;
+      margin: 0 -0.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      margin-bottom: 0;
+    }
+
+    .install-list code {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .install-list li:last-child { border-bottom: none; }
+
+    .install-list li:hover { background: var(--bg-secondary); }
+
+    .install-method {
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .install-method code {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--accent);
+      background: var(--code-bg);
+      padding: 0.2em 0.5em;
+    }
+
+    .install-tag {
+      font-size: 0.7rem;
+      font-family: var(--font-heading);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-tertiary);
+    }
+
+    /* ── Commands list ── */
+    .cmd-list {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 2rem;
+    }
+
+    .cmd-list li {
+      padding: 0.6rem 0.5rem;
+      margin: 0 -0.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 1.5rem;
+      align-items: baseline;
+      margin-bottom: 0;
+    }
+
+    .cmd-list li:last-child { border-bottom: none; }
+    .cmd-list li:hover { background: var(--bg-secondary); }
+
+    .cmd-name {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--accent);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .cmd-desc {
+      font-family: var(--font-heading);
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
+
+    .cmd-group-label {
+      font-family: var(--font-heading);
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-tertiary);
+      padding: 1rem 0.5rem 0.4rem;
+      margin: 0 -0.5rem;
+    }
+
+    /* ── Features ── */
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 2rem;
+    }
+
+    .feature-list li {
+      padding: 0.7rem 0.5rem;
+      margin: 0 -0.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0;
+    }
+
+    .feature-list li:last-child { border-bottom: none; }
+    .feature-list li:hover { background: var(--bg-secondary); }
+
+    .feature-list strong {
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .feature-list span {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.35rem 0.85rem;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text-tertiary);
+      font-family: var(--font-heading);
+      font-size: 0.8rem;
+      text-decoration: none;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      -webkit-tap-highlight-color: transparent;
+      line-height: 1.4;
+    }
+
+    .btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--bg);
+      text-decoration: none;
+    }
+
+    .btn:active { opacity: 0.8; }
+
+    .btn-accent {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--bg);
+      font-weight: 500;
+    }
+
+    .btn-accent:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+      color: var(--bg);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+    }
+
+    /* ── HR ── */
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 3rem 0;
+    }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.85rem;
+      color: var(--text-tertiary);
+    }
+
+    footer a { color: var(--text-tertiary); }
+    footer a:hover { color: var(--accent); }
+
+    .footer-colophon {
+      font-family: var(--font-heading);
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      margin-top: 0.5rem;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      body { padding: 0 1.25rem; }
+      html { font-size: 16px; }
+      h1 { font-size: 1.6rem; }
+      h2 { font-size: 1.25rem; }
+      .cmd-list li { flex-direction: column; gap: 0.2rem; }
+    }
+
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav role="navigation" aria-label="Main">
+    <div class="container">
+      <div class="nav-left">
+        <a href="/" class="logo-link">
+          <img src="palmshed.svg" alt="" class="logo-mark" width="22" height="22">
+          <span class="site-title">Kit</span>
+        </a>
+      </div>
+      <div class="nav-right">
+        <div class="nav-links">
+          <a href="#features">Features</a>
+          <a href="#install">Install</a>
+          <a href="#commands">Commands</a>
+          <a href="https://github.com/bniladridas/kit">GitHub</a>
+        </div>
+        <button class="nav-toggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+    <div class="nav-mobile-menu">
+      <a href="#features">Features</a>
+      <a href="#install">Install</a>
+      <a href="#commands">Commands</a>
+      <a href="https://github.com/bniladridas/kit">GitHub</a>
+    </div>
+  </nav>
+
+  <main class="container" id="main-content">
+    <h1>The CLI for<br>developer workflows</h1>
+    <p class="subtitle">A lightweight Go CLI for working with GitHub from the terminal. Repos, issues, pull requests, and more.</p>
+
+    <div class="btn-group">
+      <a href="#install" class="btn btn-accent">Install Kit</a>
+      <a href="https://github.com/bniladridas/kit" class="btn">View Source</a>
+    </div>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <div class="terminal-dot"></div>
+        <div class="terminal-dot"></div>
+        <div class="terminal-dot"></div>
+      </div>
+      <div class="terminal-body">
+        <div><span class="prompt">$</span> <span class="cmd">kit auth login github</span></div>
+        <div><span class="output">Authenticated as </span><span class="highlight">bniladridas</span></div>
+        <div class="dim">&nbsp;</div>
+        <div><span class="prompt">$</span> <span class="cmd">kit github repo list</span></div>
+        <div><span class="highlight">kit</span>          <span class="dim">Go CLI tool</span></div>
+        <div><span class="highlight">homebrew-kit</span>  <span class="dim">Homebrew tap</span></div>
+        <div><span class="highlight">portfolio</span>    <span class="dim">Personal site</span></div>
+        <div class="dim">&nbsp;</div>
+        <div><span class="prompt">$</span> <span class="cmd">kit github pr create --title "Fix login"</span></div>
+        <div><span class="output">Created pull request </span><span class="highlight">#42</span></div>
+      </div>
+    </div>
+
+    <h2 id="features">Features</h2>
+    <p class="intro">Focused on the workflows that matter. Fast startup, minimal dependencies, structured output for scripting.</p>
+    <ul class="feature-list">
+      <li><strong>GitHub Auth</strong> <span>OAuth device flow or personal access tokens. Secure, browser-based authentication with one command.</span></li>
+      <li><strong>Repo & PR Management</strong> <span>List, clone, create issues, manage pull requests. All from the terminal.</span></li>
+      <li><strong>Auto Context</strong> <span>Detects the current Git repo owner, name, and branch automatically.</span></li>
+      <li><strong>Shell Completion</strong> <span>Tab completion for Bash, Zsh, and Fish.</span></li>
+      <li><strong>Structured Output</strong> <span>JSON output for every command. Scripting, piping, and tool integration built in.</span></li>
+      <li><strong>Built in Go</strong> <span>Single binary. No runtime. Cross-compiled for Linux, macOS, and Windows.</span></li>
+    </ul>
+
+    <hr>
+
+    <h2 id="install">Installation</h2>
+    <p class="intro">Choose the method that works best for you.</p>
+    <ul class="install-list">
+      <li>
+        <span class="install-method">Homebrew <span class="install-tag">Recommended</span></span>
+        <code>brew tap bniladridas/kit<br>brew install bniladridas/kit/kit</code>
+      </li>
+      <li>
+        <span class="install-method">Install Script</span>
+        <code>curl -fsSL https://raw.githubusercontent.com/bniladridas/kit/main/scripts/install.sh | sh</code>
+      </li>
+      <li>
+        <span class="install-method">Go</span>
+        <code>go install github.com/bniladridas/kit/cmd/kit@latest</code>
+      </li>
+      <li>
+        <span class="install-method">Manual</span>
+        <a href="https://github.com/bniladridas/kit/releases/latest">GitHub Releases</a>
+      </li>
+    </ul>
+
+    <hr>
+
+    <h2 id="commands">Commands</h2>
+    <p class="intro">Each command does one thing well. Discoverable, consistent, and scriptable.</p>
+
+    <div class="cmd-group-label">Authentication</div>
+    <ul class="cmd-list">
+      <li><span class="cmd-name">kit auth login github</span><span class="cmd-desc">Authenticate via OAuth device flow</span></li>
+      <li><span class="cmd-name">kit auth status</span><span class="cmd-desc">Show authentication status</span></li>
+    </ul>
+
+    <div class="cmd-group-label">GitHub</div>
+    <ul class="cmd-list">
+      <li><span class="cmd-name">kit github repo list</span><span class="cmd-desc">List your repositories</span></li>
+      <li><span class="cmd-name">kit github repo clone owner/repo</span><span class="cmd-desc">Clone a repository</span></li>
+      <li><span class="cmd-name">kit github issue list</span><span class="cmd-desc">List issues in the current repo</span></li>
+      <li><span class="cmd-name">kit github issue create --title "Bug"</span><span class="cmd-desc">Create a new issue</span></li>
+      <li><span class="cmd-name">kit github pr list</span><span class="cmd-desc">List pull requests</span></li>
+      <li><span class="cmd-name">kit github pr create --title "Fix"</span><span class="cmd-desc">Create a new pull request</span></li>
+      <li><span class="cmd-name">kit github pr checkout 123</span><span class="cmd-desc">Checkout a PR branch</span></li>
+    </ul>
+
+    <div class="cmd-group-label">System</div>
+    <ul class="cmd-list">
+      <li><span class="cmd-name">kit context</span><span class="cmd-desc">Show repo owner, name, branch, and remote</span></li>
+      <li><span class="cmd-name">kit doctor</span><span class="cmd-desc">Check config, auth, git, and connectivity</span></li>
+      <li><span class="cmd-name">kit version</span><span class="cmd-desc">Print version information</span></li>
+    </ul>
+  </main>
+
+  <footer class="container">
+    <p class="footer-colophon">&copy; 2026 Niladri Das. Published under the Palmshed identity. <a href="https://github.com/bniladridas/kit">GitHub</a> &middot; <a href="https://github.com/bniladridas/kit/releases">Releases</a> &middot; <a href="https://github.com/bniladridas/kit/blob/main/LICENSE">License</a></p>
+  </footer>
+
+  <script>
+    (function() {
+      var toggle = document.querySelector('.nav-toggle');
+      var nav = document.querySelector('nav');
+      toggle.addEventListener('click', function() {
+        var expanded = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', String(!expanded));
+        nav.classList.toggle('nav-open');
+      });
+    })();
+  </script>
+
+</body>
+</html>
