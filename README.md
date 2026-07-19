@@ -15,11 +15,11 @@ A lightweight developer CLI built with Go for working with Git hosting platforms
 ### Homebrew
 
 ```bash
-brew install bniladridas/tap/kit
+brew install bniladridas/kit/kit
 ```
 
 For Homebrew installation, see:
-https://github.com/bniladridas/homebrew-tap
+https://github.com/bniladridas/homebrew-kit
 
 ### Install Script
 
